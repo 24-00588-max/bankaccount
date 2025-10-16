@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Create Account</title>
+<style>
+  :root{--main:#ffffff;--accent:#f5f0e1;--glass-black:rgba(0,0,0,0.36);--glass-hover:rgba(0,0,0,0.5);--text:#222}
+  body{margin:0;background:var(--accent);font-family:Inter, Poppins, system-ui;color:var(--text);display:flex;align-items:center;justify-content:center;height:100vh}
+  .card{background:var(--main);padding:36px;border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,0.06);width:min(720px,92%);max-width:520px;text-align:center}
+  h2{margin:0 0 8px 0}
+  p{color:#475569;margin:0 0 18px 0}
+  input{width:100%;padding:12px;border-radius:10px;border:1px solid #e6e9ee;background:#fff;margin-bottom:12px;font-size:1rem}
+  .glass-btn{background:var(--glass-black);color:var(--main);padding:12px 20px;border-radius:12px;border:none;font-weight:700;cursor:pointer;backdrop-filter: blur(8px)}
+  .glass-btn:hover{background:var(--glass-hover)}
+  .small{font-size:0.9rem;color:#667085;margin-top:12px}
+</style>
+</head>
+<body>
+  <div class="card">
+    <h2>Create account</h2>
+    <p>Enter your <strong>first name</strong> to create an account. We'll "verify" it (20s) — this just simulates a real signup.</p>
+
+    <form id="createForm" onsubmit="return false;">
+      <input id="firstName" placeholder="First name (e.g. Alfred)" aria-label="First name" />
+      <div style="display:flex;gap:10px;justify-content:center;margin-top:8px">
+        <button class="glass-btn" id="createBtn">Create account</button>
+      </div>
+    </form>
+
+    <div class="small">We prefill classmates for convenience. After verification you will sign in with that same first name.</div>
+  </div>
+
+<script>
+/* Create account flow:
+   - Save newUserName to localStorage
+   - Create base user if not exists (default credits 100)
+   - Redirect to verifying.html
+*/
+(function(){
+  // ensure base data exists
+  function initBase(){
+    if(localStorage.getItem('ccs_data')) return;
+    const classmates = ["Sophia","Alex","William","Pablo","Leon","Lexie","Alfred","Chloe","Ariel","Miya","Noah"];
+    const users = classmates.map(n=>({ name:n, credits:100, isAdmin: (n==='Alfred'||n==='Lexie'), lastWageClaim: null }));
+    const data = { users, listings: [], bids: [], settings: { dailyWage:50 }, loans: [] , stock: { history: [] } };
+    localStorage.setItem('ccs_data', JSON.stringify(data));
+  }
+  initBase();
+
+  document.getElementById('createBtn').addEventListener('click', ()=>{
+    const name = (document.getElementById('firstName').value || '').trim();
+    if(!name) return alert('Please enter your first name.');
+    // save temp created name
+    localStorage.setItem('ccs_newUser', name);
+    // if user not exist, add them with default 100 credits
+    const data = JSON.parse(localStorage.getItem('ccs_data'));
+    const existing = data.users.find(u=>u.name.toLowerCase()===name.toLowerCase());
+    if(!existing){
+      data.users.push({ name, credits:100, isAdmin:false, lastWageClaim: null });
+      localStorage.setItem('ccs_data', JSON.stringify(data));
+    }
+    // go to verifying (20s)
+    window.location.href = 'verifying.html';
+  });
+})();
+</script>
+</body>
+</html>
