@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Sign in or Create Account?</title>
+<style>
+  /* 60-30-10 palette + liquid glass buttons + minimal layout */
+  :root{
+    --main: #ffffff;           /* 60% main panels */
+    --secondary: rgba(30,136,229,0.35); /* 30% liquid-glass blue */
+    --accent: #f5f0e1;         /* 10% beige background */
+    --text: #222;
+    --glass-black: rgba(0,0,0,0.36);
+    --glass-hover: rgba(0,0,0,0.5);
+  }
+
+  html,body{height:100%;}
+  body{
+    margin:0;
+    background:var(--accent); /* beige */
+    color:var(--text);
+    font-family: Inter, Poppins, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    display:flex; align-items:center; justify-content:center;
+  }
+
+  .panel{
+    background:var(--main); /* white */
+    width:min(760px,94%);
+    border-radius:16px;
+    padding:40px;
+    box-shadow: 0 10px 36px rgba(0,0,0,0.08);
+    text-align:center;
+  }
+
+  h1{margin:0 0 8px 0; font-weight:700; color:#0f1720}
+  p.lead{margin:0 0 26px 0; color:#475569}
+
+  .controls{display:flex; gap:18px; justify-content:center; margin-top:12px; flex-wrap:wrap;}
+  .glass-btn{
+    background:var(--glass-black);
+    color:var(--main);
+    padding:12px 22px;
+    border-radius:12px;
+    border: none;
+    cursor:pointer;
+    font-weight:700;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
+    box-shadow: 0 6px 22px rgba(2,6,23,0.12);
+  }
+  .glass-btn:hover{ transform:translateY(-4px); background:var(--glass-hover); box-shadow:0 12px 30px rgba(2,6,23,0.14); }
+  .glass-link{ text-decoration:none; display:inline-block; }
+
+  .small { font-size:0.95rem; color:#667085; margin-top:18px; }
+
+  footer { margin-top:18px; font-size:0.85rem; color:#98a0aa; }
+
+  @media (max-width:520px){
+    .controls{flex-direction:column; gap:12px;}
+  }
+</style>
+</head>
+<body>
+  <div class="panel" role="main">
+    <h1>Sign in or Create Account?</h1>
+    <p class="lead">Quick classroom credit system — sign in with first name. New? Create an account (first name only).</p>
+
+    <div class="controls">
+      <a class="glass-link" href="signin.html"><button class="glass-btn" id="signinBtn">Sign In</button></a>
+      <a class="glass-link" href="create.html"><button class="glass-btn" id="createBtn">Create Account</button></a>
+    </div>
+
+    <div class="small">Tip: If you're Alfred or Lexie you'll get admin controls in the Bank page.</div>
+    <footer>Made for class — Minimal / comfortable UI</footer>
+  </div>
+</body>
+</html>
