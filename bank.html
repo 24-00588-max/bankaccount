@@ -1,332 +1,303 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8"/><meta name="viewport"content="width=device-width,initial-scale=1"/>
-<title>Bank Account</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Class Credit Bank</title>
 <style>
-  :root{
-    --main:#ffffff;           /* 60% */
-    --secondary: rgba(30,136,229,0.35); /* 30% liquid glass blue buttons */
-    --accent:#f5f0e1;         /* 10% beige */
-    --text:#111;
-    --glass-black: rgba(0,0,0,0.36);
-    --glass-hover: rgba(0,0,0,0.5);
+  body {
+    font-family: "Poppins", sans-serif;
+    background-color: #f5f1e8; /* beige */
+    color: #222;
+    margin: 0;
+    padding: 0;
   }
-  html,body{height:100%;margin:0;font-family:Inter,Poppins;background:var(--accent);color:var(--text)}
-  .wrap{max-width:1200px;margin:28px auto;padding:18px}
-  .panel{background:var(--main);border-radius:14px;padding:20px;box-shadow:0 10px 30px rgba(0,0,0,0.06);margin-bottom:18px}
-  .top{display:flex;justify-content:space-between;align-items:center}
-  h1{margin:0;font-size:1.5rem}
-  .glass-btn{background:var(--glass-black);color:var(--main);padding:10px 16px;border-radius:12px;border:none;font-weight:700;cursor:pointer;backdrop-filter: blur(8px)}
-  .glass-btn:hover{background:var(--glass-hover)}
-  .columns{display:grid;grid-template-columns:1fr 420px;gap:18px;margin-top:14px}
-  .stat{padding:12px;border-radius:10px;background:#fbfdff;border:1px solid #eef3f8}
-  .stat h3{margin:0;font-size:1rem}
-  .muted{color:#58616a;font-size:0.95rem}
-  .small{font-size:0.9rem;color:#667085}
-  .ads-grid{display:grid;grid-template-columns:1fr;gap:10px}
-  .ad-card{display:flex;gap:12px;align-items:center;padding:10px;border-radius:10px;background:#fff;border:1px solid #efefef}
-  .ad-card img{width:64px;height:64px;border-radius:8px;object-fit:cover}
-  .controls{display:flex;gap:8px;flex-wrap:wrap}
-  input,select{padding:8px;border-radius:8px;border:1px solid #e6e9ee}
-  table{width:100%;border-collapse:collapse;margin-top:8px}
-  th,td{border-bottom:1px solid #eef2f6;padding:8px;text-align:left}
-  .admin-block{background:#f8fafb;padding:12px;border-radius:10px}
-  #stockChart{width:100%;height:180px;background:linear-gradient(180deg,#fff,#f6fbff);border-radius:10px;padding:12px}
-  @media (max-width:960px){ .columns{grid-template-columns:1fr} }
+
+  header {
+    background-color: white;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    padding: 20px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  h1 {
+    font-weight: 600;
+  }
+
+  .balance-card {
+    background-color: white;
+    border-radius: 20px;
+    padding: 30px;
+    margin: 40px auto;
+    max-width: 600px;
+    text-align: center;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+  }
+
+  .balance {
+    font-size: 2.5em;
+    margin: 20px 0;
+    color: #1a73e8;
+  }
+
+  .glass-button {
+    background: rgba(26, 115, 232, 0.2);
+    color: #1a73e8;
+    border: 1px solid rgba(26, 115, 232, 0.4);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 12px 30px;
+    margin: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .glass-button:hover {
+    background: rgba(26, 115, 232, 0.4);
+    color: white;
+  }
+
+  .stock-market {
+    background-color: white;
+    margin: 40px auto;
+    padding: 20px;
+    max-width: 800px;
+    border-radius: 20px;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+  }
+
+  canvas {
+    width: 100%;
+    height: 300px;
+  }
+
+  .ads {
+    margin: 40px auto;
+    max-width: 800px;
+  }
+
+  .ad-card {
+    background-color: white;
+    border-radius: 20px;
+    padding: 20px;
+    margin: 15px 0;
+    box-shadow: 0 5px 10px rgba(0,0,0,0.1);
+  }
+
+  /* Admin button (hidden pencil) */
+  #adminBtn {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    font-size: 1.4em;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: transparent;
+    text-shadow: 0 0 0 rgba(0,0,0,0);
+  }
+  .admin-visible {
+    color: #1a73e8;
+    text-shadow: 0 0 3px rgba(0,0,0,0.1);
+  }
+
+  /* Admin overlay */
+  #adminPanel {
+    display: none;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(6px);
+    justify-content: center;
+    align-items: center;
+  }
+
+  .admin-box {
+    background: white;
+    border-radius: 20px;
+    padding: 20px;
+    width: 90%;
+    max-width: 700px;
+    overflow-y: auto;
+    max-height: 80%;
+  }
+
+  .admin-user {
+    margin: 10px 0;
+    border-bottom: 1px solid #ddd;
+    padding: 10px;
+  }
+
+  input[type="number"] {
+    width: 70px;
+    padding: 5px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+  }
+
+  .close-admin {
+    float: right;
+    cursor: pointer;
+    font-weight: bold;
+    color: red;
+  }
 </style>
 </head>
 <body>
-<div class="wrap">
-  <div class="top">
-    <h1>Bank Account</h1>
-    <div>
-      <button class="glass-btn" id="toMarket">Go to Marketplace</button>
-      <button class="glass-btn" id="logoutBtn">Logout</button>
-    </div>
+
+<header>
+  <h1>Class Credit Bank</h1>
+  <button id="adminBtn" title="Admin">✏️</button>
+</header>
+
+<div class="balance-card">
+  <h2>Welcome, <span id="username"></span></h2>
+  <p>Your balance:</p>
+  <div class="balance" id="balanceDisplay">0 Credits</div>
+  <p>Daily Wage: <span id="wageDisplay">50</span> Credits</p>
+  <button class="glass-button" onclick="takeLoan()">Take Loan</button>
+  <button class="glass-button" onclick="goToMarketplace()">Go to Marketplace</button>
+</div>
+
+<div class="stock-market">
+  <h2>Credit Stock Market</h2>
+  <canvas id="stockCanvas"></canvas>
+</div>
+
+<div class="ads">
+  <h2>Marketplace Highlights</h2>
+  <div id="adsContainer"></div>
+</div>
+
+<!-- Admin Panel -->
+<div id="adminPanel">
+  <div class="admin-box">
+    <span class="close-admin" onclick="closeAdmin()">X</span>
+    <h2>Admin Controls</h2>
+    <div id="adminUsers"></div>
   </div>
-
-  <div class="panel" id="accountPanel">
-    <div id="welcomeLine"></div>
-    <div class="columns" style="margin-top:12px">
-      <div>
-        <div class="stat">
-          <h3>Balance</h3>
-          <div style="font-size:22px;font-weight:800">₱<span id="balanceVal">0</span></div>
-          <div class="small">Weekly salary controlled by admins. Wages add at 6:00 AM daily (calculated on sign-in).</div>
-        </div>
-
-        <div style="display:flex;gap:12px;margin-top:12px">
-          <div style="flex:1">
-            <div class="stat">
-              <h3>Gift credits</h3>
-              <div style="display:flex;gap:8px;margin-top:8px">
-                <input id="giftTo" placeholder="Recipient first name" />
-                <input id="giftAmt" type="number" placeholder="₱ amount" style="width:120px" />
-                <button class="glass-btn" id="giftBtn">Send</button>
-              </div>
-            </div>
-          </div>
-          <div style="width:220px">
-            <div class="stat">
-              <h3>Loans</h3>
-              <div style="display:flex;gap:8px;margin-top:8px">
-                <input id="loanAmt" type="number" placeholder="Amount" />
-                <button class="glass-btn" id="loanBtn">Take Loan</button>
-              </div>
-              <div class="small" style="margin-top:8px">Loans increase your balance immediately and are tracked. Admins can manage loans.</div>
-            </div>
-          </div>
-        </div>
-
-        <div style="margin-top:14px" class="stat">
-          <h3>Transaction History</h3>
-          <div id="txList" style="max-height:160px;overflow:auto"></div>
-        </div>
-
-        <div style="margin-top:14px" class="stat">
-          <h3>Stock Market (fun)</h3>
-          <div id="stockChart"><canvas id="stockCanvas" width="800" height="160"></canvas></div>
-          <div class="small" style="margin-top:8px">Randomized bars — just for fun. Refresh simulates a new day.</div>
-          <div style="margin-top:6px">
-            <button class="glass-btn" id="refreshStock">New day</button>
-          </div>
-        </div>
-      </div>
-
-      <aside>
-        <div class="panel" style="padding:12px;background:#fff;border:1px solid #efefef">
-          <h3 style="margin-top:0">Marketplace Ads</h3>
-          <div id="ads" class="ads-grid"></div>
-        </div>
-
-        <div class="panel" style="margin-top:12px">
-          <h3 style="margin-top:0">Wage Settings</h3>
-          <div class="small">Current daily wage: ₱<span id="dailyWageVal">50</span></div>
-          <div style="margin-top:8px" id="adminWageControls" class="admin-block" hidden>
-            <label>Set daily wage: <input id="setWage" type="number" /></label>
-            <button class="glass-btn" id="saveWage">Save</button>
-            <div class="small" style="margin-top:8px">Admins only: change the wage amount (default 50/day).</div>
-          </div>
-        </div>
-
-        <div class="panel" style="margin-top:12px">
-          <h3 style="margin-top:0">Admin Tools</h3>
-          <div id="adminPanel" hidden>
-            <div class="small">Adjust credits for classmates:</div>
-            <div id="adminUserList" style="margin-top:8px"></div>
-            <div style="margin-top:10px">
-              <button class="glass-btn" id="viewAllListings">View All Listings</button>
-              <button class="glass-btn" id="exportData" title="Export data as JSON">Export Data</button>
-            </div>
-          </div>
-        </div>
-      </aside>
-    </div>
-  </div>
-
-  <div class="small" style="text-align:center;color:#6b7280">Need help? Contact Alfred or Lexie (admins) — they can edit wages and manage listings.</div>
 </div>
 
 <script>
-/* bank.html logic — unified data model lives in localStorage key 'ccs_data' */
-(function(){
-  // helper: load/save
-  function load(){ return JSON.parse(localStorage.getItem('ccs_data')||'null'); }
-  function save(d){ localStorage.setItem('ccs_data', JSON.stringify(d)); }
+  const users = [
+    "Sophia", "Alex", "William", "Pablo", "Leon", "Lexie", "Alfred", "Chloe", "Ariel", "Miya", "Noah"
+  ];
 
-  // initialize base data if missing
-  function init(){
-    if(localStorage.getItem('ccs_data')) return;
-    const classmates = ["Sophia","Alex","William","Pablo","Leon","Lexie","Alfred","Chloe","Ariel","Miya","Noah"];
-    const users = classmates.map(n=>({ name:n, credits:100, isAdmin: (n==='Alfred'||n==='Lexie'), lastWageClaim: null }));
-    const data = {
-      users,
-      listings: [], // { id, title, desc, price, seller, delivery, image, createdAt }
-      bids: [],     // { id, productId, user, amount, at }
-      settings: { dailyWage:50 },
-      loans: [],    // { id, user, amount, at }
-      stock:{ history: generateStock() }
-    };
-    save(data);
-  }
+  const currentUser = localStorage.getItem('currentUser');
+  const balanceKey = currentUser + "_balance";
+  const wageKey = currentUser + "_wage";
+  const lastLoginKey = currentUser + "_lastLogin";
 
-  // stock generator (7 bars)
-  function generateStock(){
-    const arr=[];
-    for(let i=0;i<7;i++){
-      const base = 50 + Math.round(Math.random()*50); // base value
-      const delta = Math.round((Math.random()-0.5)*20);
-      arr.push(Math.max(10, base + delta));
-    }
-    return arr;
-  }
+  document.getElementById("username").textContent = currentUser;
+  let balance = parseInt(localStorage.getItem(balanceKey)) || 0;
+  let wage = parseInt(localStorage.getItem(wageKey)) || 50;
+  document.getElementById("balanceDisplay").textContent = balance + " Credits";
+  document.getElementById("wageDisplay").textContent = wage;
 
-  init();
-  let data = load();
-
-  // session
-  const session = JSON.parse(localStorage.getItem('ccs_session') || 'null');
-  if(!session){ alert('No active session. Redirecting to sign-in.'); window.location.href='signin.html'; }
-
-  // UI elements
-  const welcomeLine = document.getElementById('welcomeLine');
-  const balanceEl = document.getElementById('balanceVal');
-  const txList = document.getElementById('txList');
-  const adsEl = document.getElementById('ads');
-  const dailyWageVal = document.getElementById('dailyWageVal');
-  const adminPanel = document.getElementById('adminPanel');
-  const adminWageControls = document.getElementById('adminWageControls');
-  const adminUserList = document.getElementById('adminUserList');
-  const setWage = document.getElementById('setWage');
-
-  // navigation buttons
-  document.getElementById('toMarket').addEventListener('click', ()=> window.location.href='marketplace.html');
-  document.getElementById('logoutBtn').addEventListener('click', ()=>{
-    localStorage.removeItem('ccs_session');
-    window.location.href='signin.html';
-  });
-
-  // show basic info and set up admin UI if needed
-  function renderAccount(){
-    data = load();
-    const me = data.users.find(u=>u.name===session.name);
-    welcomeLine.innerHTML = `<strong>Hi, ${session.name}.</strong> Last login: ${new Date().toLocaleString()}`;
-    balanceEl.textContent = (me?.credits||0).toFixed(2);
-    dailyWageVal.textContent = data.settings.dailyWage;
-
-    // show ads (random 3 listings or message)
-    renderAds();
-
-    // render txs (we'll treat loans array + bid events as simple transaction log)
-    const txs = [...(data.loans || [])].reverse().slice(0,50);
-    txList.innerHTML = txs.length ? txs.map(t=>`<div style="padding:8px;border-bottom:1px solid #eef2f6"><strong>${t.user||t.name||t.type}</strong> • ${t.type||t.amount||t.note||''} ${t.amount?('₱'+t.amount):''} <div class="small">${t.at||t.date||''}</div></div>`).join('') : '<div class="small">No transactions yet.</div>';
-
-    // admin features
-    if(session.isAdmin){
-      adminPanel.hidden = false;
-      adminWageControls.hidden = false;
-      renderAdminUserList();
-      setWage.value = data.settings.dailyWage;
-    } else {
-      adminPanel.hidden = true;
-      adminWageControls.hidden = true;
+  // Calculate daily wages
+  const today = new Date();
+  const lastLogin = localStorage.getItem(lastLoginKey);
+  if (lastLogin) {
+    const diffDays = Math.floor((today - new Date(lastLogin)) / (1000 * 60 * 60 * 24));
+    if (diffDays > 0) {
+      const earned = diffDays * wage;
+      balance += earned;
+      alert(`Welcome back! You earned ${earned} credits for ${diffDays} day(s)`);
     }
   }
+  localStorage.setItem(balanceKey, balance);
+  localStorage.setItem(lastLoginKey, today);
+  document.getElementById("balanceDisplay").textContent = balance + " Credits";
 
-  function renderAds(){
-    adsEl.innerHTML = '';
-    if(data.listings.length === 0){
-      adsEl.innerHTML = `<div class="small">No marketplace items yet.</div>`;
-      return;
+  // Loan button
+  function takeLoan() {
+    const loanAmount = Math.floor(Math.random() * 500) + 100;
+    balance += loanAmount;
+    localStorage.setItem(balanceKey, balance);
+    alert(`You took a loan of ${loanAmount} credits`);
+    document.getElementById("balanceDisplay").textContent = balance + " Credits";
+  }
+
+  function goToMarketplace() {
+    window.location.href = "marketplace.html";
+  }
+
+  // Stock market random graph
+  const canvas = document.getElementById('stockCanvas');
+  const ctx = canvas.getContext('2d');
+  function drawGraph() {
+    const w = canvas.width;
+    const h = canvas.height;
+    ctx.clearRect(0, 0, w, h);
+    ctx.beginPath();
+    ctx.moveTo(0, h/2);
+    for (let x=0; x<w; x+=20) {
+      const y = h/2 + Math.sin(x/50 + Date.now()/1000)*50*Math.random();
+      ctx.lineTo(x, y);
     }
-    // pick up to 3 random
-    const shuffled = [...data.listings].sort(()=>Math.random()-0.5).slice(0,3);
-    shuffled.forEach(l=>{
-      const div = document.createElement('div'); div.className='ad-card';
-      div.innerHTML = `<img src="${l.image||'https://via.placeholder.com/128'}" alt=""><div><strong>${l.title}</strong><div class="muted">Seller: ${l.seller}</div><div style="margin-top:6px"><button class="glass-btn" onclick="location.href='marketplace.html#product_${l.id}'">View</button></div></div>`;
-      adsEl.appendChild(div);
-    });
+    ctx.strokeStyle = "#1a73e8";
+    ctx.lineWidth = 3;
+    ctx.stroke();
   }
+  setInterval(drawGraph, 800);
 
-  // gift credits
-  document.getElementById('giftBtn').addEventListener('click', ()=>{
-    const to = (document.getElementById('giftTo').value || '').trim();
-    const amt = parseFloat(document.getElementById('giftAmt').value);
-    if(!to || !amt || amt<=0) return alert('Enter recipient and valid amount.');
-    const user = data.users.find(u=>u.name.toLowerCase()===to.toLowerCase());
-    const me = data.users.find(u=>u.name===session.name);
-    if(!user) return alert('Recipient not found.');
-    if(me.credits < amt) return alert('Insufficient credits.');
-    me.credits -= amt; user.credits += amt;
-    // log
-    data.loans.push({ type:'gift', user:me.name, to:user.name, amount:amt, at:new Date().toISOString() });
-    save(data);
-    renderAccount();
-    alert(`Sent ₱${amt} to ${user.name}`);
-  });
-
-  // take loan
-  document.getElementById('loanBtn').addEventListener('click', ()=>{
-    const amt = parseFloat(document.getElementById('loanAmt').value);
-    if(!amt || amt<=0) return alert('Enter loan amount.');
-    const me = data.users.find(u=>u.name===session.name);
-    me.credits += amt;
-    data.loans.push({ type:'loan', user:me.name, amount:amt, at:new Date().toISOString() });
-    save(data);
-    renderAccount();
-    alert(`Loan granted: ₱${amt}.`);
-  });
-
-  // stock chart generation
-  const ctx = document.getElementById('stockCanvas').getContext('2d');
-  function drawStock(){
-    const arr = data.stock.history;
-    const w = ctx.canvas.width = ctx.canvas.clientWidth;
-    const h = ctx.canvas.height = 160;
-    ctx.clearRect(0,0,w,h);
-    const max = Math.max(...arr,50);
-    const gap = 12;
-    const barW = (w - gap*(arr.length+1)) / arr.length;
-    arr.forEach((v,i)=>{
-      const x = gap + i*(barW+gap);
-      const barH = (v/max) * (h - 20);
-      ctx.fillStyle = v >= 50 ? '#16a34a' : '#ef4444'; // green if above baseline
-      ctx.fillRect(x, h - barH - 10, barW, barH);
-      ctx.fillStyle = '#334155';
-      ctx.font = '12px Inter, Poppins';
-      ctx.fillText(v, x+6, h - barH - 14);
-    });
-  }
-  document.getElementById('refreshStock').addEventListener('click', ()=>{
-    data.stock.history = generateStock();
-    save(data); drawStock();
-  });
-
-  // admin wage controls
-  document.getElementById('saveWage').addEventListener('click', ()=>{
-    const val = parseInt(setWage.value);
-    if(isNaN(val) || val<0) return alert('Enter valid wage');
-    data.settings.dailyWage = val; save(data); renderAccount();
-    alert(`Daily wage set to ₱${val}`);
-  });
-
-  // admin user list
-  function renderAdminUserList(){
-    adminUserList.innerHTML = '';
-    data.users.forEach(u=>{
+  // Ads
+  const adsContainer = document.getElementById('adsContainer');
+  const listings = JSON.parse(localStorage.getItem('marketListings') || "[]");
+  if (listings.length === 0) {
+    adsContainer.innerHTML = "<p>No listings yet. Visit the marketplace to start selling!</p>";
+  } else {
+    const randomAds = listings.slice(0, 3);
+    randomAds.forEach(ad => {
       const div = document.createElement('div');
-      div.style.display='flex'; div.style.alignItems='center'; div.style.gap='8px'; div.style.marginBottom='8px';
-      div.innerHTML = `<div style="flex:1">${u.name} — ₱${u.credits.toFixed(2)} ${u.isAdmin?'<strong>(admin)</strong>':''}</div>`;
-      const add = document.createElement('button'); add.className='glass-btn'; add.textContent='+10'; add.onclick=()=>{u.credits+=10; save(data); renderAccount();};
-      const sub = document.createElement('button'); sub.className='glass-btn'; sub.textContent='-10'; sub.onclick=()=>{u.credits-=10; save(data); renderAccount();};
-      div.appendChild(add); div.appendChild(sub);
-      adminUserList.appendChild(div);
+      div.className = "ad-card";
+      div.innerHTML = `<h3>${ad.name}</h3><p>${ad.price} Credits</p>`;
+      adsContainer.appendChild(div);
     });
   }
 
-  // export data
-  document.getElementById('exportData').addEventListener('click', ()=>{
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a'); a.href=url; a.download='ccs_data_export.json'; a.click();
-    URL.revokeObjectURL(url);
+  // Admin section
+  const adminBtn = document.getElementById('adminBtn');
+  if (currentUser === "Alfred" || currentUser === "Lexie") {
+    adminBtn.classList.add('admin-visible');
+  }
+  adminBtn.addEventListener('click', () => {
+    if (currentUser === "Alfred" || currentUser === "Lexie") openAdmin();
   });
 
-  // view all listings
-  document.getElementById('viewAllListings').addEventListener('click', ()=>{
-    let html = data.listings.length ? data.listings.map(l=>`<div style="padding:8px;border-bottom:1px solid #eef2f6"><strong>${l.title}</strong> — Seller: ${l.seller} — ₱${l.price}</div>`).join('') : '<div>No listings</div>';
-    const w = window.open('','Listings','width=600,height=600'); w.document.body.innerHTML = `<pre style="font-family:Inter;padding:12px">${html}</pre>`;
-  });
+  function openAdmin() {
+    document.getElementById('adminPanel').style.display = 'flex';
+    const adminUsersDiv = document.getElementById('adminUsers');
+    adminUsersDiv.innerHTML = '';
+    users.forEach(u => {
+      const bal = localStorage.getItem(u + "_balance") || 0;
+      const w = localStorage.getItem(u + "_wage") || 50;
+      adminUsersDiv.innerHTML += `
+        <div class="admin-user">
+          <b>${u}</b> — Balance: ${bal} — Wage: ${w}<br/>
+          <label>Change Wage: </label>
+          <input type="number" id="wage_${u}" value="${w}"/>
+          <label>Change Balance: </label>
+          <input type="number" id="bal_${u}" value="${bal}"/>
+          <button onclick="saveUser('${u}')">Save</button>
+        </div>`;
+    });
+  }
 
-  // initial render
-  renderAccount();
-  drawStock();
+  function closeAdmin() {
+    document.getElementById('adminPanel').style.display = 'none';
+  }
 
-  // show admin block only for admins
-  if(session.isAdmin) adminPanel.hidden = false;
-
-})();
+  function saveUser(u) {
+    const newWage = parseInt(document.getElementById('wage_'+u).value);
+    const newBal = parseInt(document.getElementById('bal_'+u).value);
+    localStorage.setItem(u + "_wage", newWage);
+    localStorage.setItem(u + "_balance", newBal);
+    alert(`${u}'s data updated.`);
+  }
 </script>
 </body>
 </html>
