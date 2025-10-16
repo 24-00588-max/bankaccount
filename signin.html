@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/><meta name="viewport"content="width=device-width,initial-scale=1"/>
+<title>Sign In</title>
+<style>
+  :root{--main:#fff;--accent:#f5f0e1;--glass:black;--glass-hover:rgba(0,0,0,0.5);--text:#222}
+  body{margin:0;background:var(--accent);font-family:Inter,Poppins;display:flex;align-items:center;justify-content:center;height:100vh}
+  .card{background:var(--main);padding:36px;border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,0.06);width:min(720px,92%);max-width:520px;text-align:center}
+  input{width:100%;padding:12px;border-radius:10px;border:1px solid #e6e9ee;margin-bottom:12px;font-size:1rem}
+  .glass-btn{background:rgba(0,0,0,0.36);color:#fff;padding:12px 20px;border-radius:12px;border:none;font-weight:700}
+  .glass-btn:hover{background:var(--glass-hover)}
+  .muted{color:#667085;margin-top:10px}
+</style>
+</head>
+<body>
+  <div class="card">
+    <h2>Sign In</h2>
+    <p class="muted">Enter your first name (class list is preloaded).</p>
+
+    <form id="signinForm" onsubmit="return false;">
+      <input id="name" placeholder="First name" />
+      <div style="display:flex;gap:10px;justify-content:center">
+        <button class="glass-btn" id="signinBtn">Sign in</button>
+      </div>
+    </form>
+
+    <div class="muted" style="margin-top:14px">Classmates: Sophia, Alex, William, Pablo, Leon, Lexie, Alfred, Chloe, Ariel, Miya, Noah</div>
+  </div>
+
+<script>
+(function(){
+  function ensureData(){
+    if(localStorage.getItem('ccs_data')) return;
+    // initialize base data - same as create
+    const classmates = ["Sophia","Alex","William","Pablo","Leon","Lexie","Alfred","Chloe","Ariel","Miya","Noah"];
+    const users = classmates.map(n=>({ name:n, credits:100, isAdmin: (n==='Alfred'||n==='Lexie'), lastWageClaim: null }));
+    const data = { users, listings: [], bids: [], settings: { dailyWage:50 }, loans: [], stock: { history: [] } };
+    localStorage.setItem('ccs_data', JSON.stringify(data));
+  }
+  ensureData();
+
+  document.getElementById('signinBtn').addEventListener('click', ()=>{
+    const name = (document.getElementById('name').value || '').trim();
+    if(!name) return alert('Enter your first name.');
+    const data = JSON.parse(localStorage.getItem('ccs_data'));
+    const user = data.users.find(u=>u.name.toLowerCase()===name.toLowerCase());
+    if(!user){
+      return alert('Name not recognized. If you just created an account, wait for verification, then use the same name.');
+    }
+    // set session
+    localStorage.setItem('ccs_session', JSON.stringify({ name: user.name, isAdmin: !!user.isAdmin }));
+    // credit wages that were missed up to now (pay at 6:00 AM daily)
+    creditMissedWages(user);
+    // save and redirect to bank
+    localStorage.setItem('ccs_data', JSON.stringify(data));
+    window.location.href = 'bank.html';
+  });
+
+  function get6am(date){
+    const d = new Date(date);
+    d.setHours(6,0,0,0);
+    return d;
+  }
+  function creditMissedWages(user){
+    const data = JSON.parse(localStorage.getItem('ccs_data'));
+    const daily = data.settings?.dailyWage || 50;
+    const now = new Date();
+    const today6 = get6am(now);
+    let last = user.lastWageClaim ? new Date(user.lastWageClaim) : null;
+    if(!last){
+      // if never claimed, give wage for today if current time >= 6am, otherwise give nothing and set lastWageClaim to yesterday 6am
+      if(now >= today6){
+        user.credits += daily;
+        user.lastWageClaim = today6.toISOString();
+      } else {
+        // set last to yesterday 6am
+        const y = new Date(today6.getTime() - 24*3600*1000);
+        user.lastWageClaim = y.toISOString();
+      }
+      return;
+    }
+    // count number of 6AM ticks since last
+    let last6 = get6am(last);
+    // normalize: if last was after 6am, last6 is that day's 6am
+    if(last > last6) last6 = last6;
+    let diffMs = today6 - last6;
+    if(diffMs < 0) diffMs = 0;
+    const missedDays = Math.floor(diffMs / (24*3600*1000));
+    if(missedDays > 0){
+      const total = missedDays * daily;
+      user.credits += total;
+      user.lastWageClaim = today6.toISOString();
+      // record simple transaction (we'll keep it in data.loans as logs for now)
+      const note = { type:'wage', user:user.name, amount: total, at: new Date().toISOString(), days: missedDays };
+      data.loans = data.loans || [];
+      data.loans.push(note);
+      localStorage.setItem('ccs_data', JSON.stringify(data));
+      alert(`You've received ₱${total} for ${missedDays} day(s) of wages (₱${daily}/day).`);
+    }
+  }
+})();
+</script>
+</body>
+</html>
