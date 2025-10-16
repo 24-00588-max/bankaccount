@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/><meta name="viewport"content="width=device-width,initial-scale=1"/>
+<title>Marketplace</title>
+<style>
+  :root{--main:#fff;--accent:#f5f0e1;--glass:black;--glass-hover:rgba(0,0,0,0.5);--text:#222}
+  body{margin:0;background:var(--accent);font-family:Inter,Poppins;color:var(--text)}
+  .wrap{max-width:1200px;margin:28px auto;padding:18px}
+  .top{display:flex;justify-content:space-between;align-items:center}
+  h1{margin:0}
+  .glass-btn{background:rgba(0,0,0,0.36);color:#fff;padding:10px 14px;border-radius:12px;border:none;font-weight:700}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;margin-top:18px}
+  .card{background:#fff;padding:12px;border-radius:10px;box-shadow:0 8px 28px rgba(2,6,23,0.06);border:1px solid #eef2f6}
+  .card img{width:100%;height:150px;object-fit:cover;border-radius:8px}
+  .muted{color:#6b7280;font-size:0.95rem}
+  .empty{padding:60px;text-align:center;background:#fff;border-radius:12px}
+  .form{background:#fff;padding:12px;border-radius:10px;margin-top:16px}
+  .bid-list{max-height:160px;overflow:auto;padding:8px}
+  .product-modal{position:fixed;left:0;top:0;width:100%;height:100%;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.45)}
+  .modal-card{width:min(900px,96%);background:#fff;padding:16px;border-radius:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <h1>Marketplace</h1>
+    <div>
+      <button class="glass-btn" onclick="location.href='bank.html'">Back to Bank</button>
+    </div>
+  </div>
+
+  <div id="mainArea"></div>
+
+  <div class="form" id="sellFormWrap">
+    <h3>Sell something</h3>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <input id="sellTitle" placeholder="Item title" style="flex:1;padding:8px;border-radius:8px;border:1px solid #e6e9ee" />
+      <input id="sellPrice" placeholder="Price (₱)" type="number" style="width:120px;padding:8px;border-radius:8px;border:1px solid #e6e9ee" />
+    </div>
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <input id="sellDelivery" placeholder="Delivery (e.g. Next school day)" style="flex:1;padding:8px;border-radius:8px;border:1px solid #e6e9ee" />
+      <input id="sellImage" placeholder="Image URL (optional)" style="width:260px;padding:8px;border-radius:8px;border:1px solid #e6e9ee" />
+    </div>
+    <div style="margin-top:8px"><button class="glass-btn" id="sellBtn">Create listing</button></div>
+  </div>
+</div>
+
+<!-- product modal -->
+<div id="productModal" class="product-modal" role="dialog" aria-hidden="true">
+  <div class="modal-card">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <h2 id="modalTitle">Product</h2>
+      <div><button onclick="closeModal()" class="glass-btn">Close</button></div>
+    </div>
+    <div style="display:flex;gap:12px;margin-top:12px">
+      <div style="flex:1"><img id="modalImage" src="" style="width:100%;border-radius:8px;height:300px;object-fit:cover" /></div>
+      <div style="width:360px">
+        <div id="modalDetails" class="muted"></div>
+        <div style="margin-top:10px">
+          <div class="muted">Bids</div>
+          <div id="modalBids" class="bid-list"></div>
+        </div>
+        <div style="margin-top:10px"><input id="bidAmt" placeholder="Your bid (₱)" type="number" style="width:100%;padding:8px;border-radius:8px;border:1px solid #e6e9ee" /><div style="margin-top:8px"><button id="placeBidBtn" class="glass-btn">Place Bid</button> <button id="acceptBidBtn" class="glass-btn" style="display:none;background:#16a34a">Accept Highest</button></div></div>
+      </div>
+    </div>
+    <div id="sellerHistoryWrap" style="margin-top:12px"></div>
+  </div>
+</div>
+
+<script>
+/* Single-page marketplace code (listings + bids stored in ccs_data) */
+(function(){
+  // helpers to load/save
+  function load(){ return JSON.parse(localStorage.getItem('ccs_data') || '{}'); }
+  function save(d){ localStorage.setItem('ccs_data', JSON.stringify(d)); }
+
+  // ensure base
+  if(!localStorage.getItem('ccs_data')){
+    const classmates = ["Sophia","Alex","William","Pablo","Leon","Lexie","Alfred","Chloe","Ariel","Miya","Noah"];
+    const users = classmates.map(n=>({ name:n, credits:100, isAdmin: (n==='Alfred'||n==='Lexie'), lastWageClaim:null }));
+    const data = { users, listings: [], bids: [], settings:{dailyWage:50}, loans:[], stock:{ history: [] } };
+    save(data);
+  }
+
+  let data = load();
+  let session = JSON.parse(localStorage.getItem('ccs_session') || 'null');
+
+  // If not logged in, redirect to signin
+  if(!session){ alert('Sign in first'); window.location.href='signin.html'; return; }
+
+  const mainArea = document.getElementById('mainArea');
+  const sellFormWrap = document.getElementById('sellFormWrap');
+  const sellBtn = document.getElementById('sellBtn');
+
+  function render(){
+    data = load();
+    if(data.listings.length === 0){
+      mainArea.innerHTML = `<div class="empty"><h3>There is nothing here yet.</h3><p class="muted">Do you want to be the first to sell something? Use the form below to create a listing.</p></div>`;
+    } else {
+      const html = `<div class="grid">` + data.listings.map(l=>`
+        <div class="card">
+          <img src="${l.image||'https://via.placeholder.com/400x300?text=No+Image'}" alt="">
+          <h3>${l.title}</h3>
+          <div class="muted">Seller: ${l.seller}</div>
+          <div style="margin:10px 0;font-weight:700">₱${l.price}</div>
+          <div class="muted">Delivery: ${l.delivery}</div>
+          <div style="margin-top:8px"><button class="glass-btn" onclick="openProduct(${l.id})">View & Bid</button></div>
+        </div>
+      `).join('') + `</div>`;
+      mainArea.innerHTML = html;
+    }
+  }
+
+  // SELL: create listing connected to data.listings
+  sellBtn.addEventListener('click', ()=>{
+    const title = document.getElementById('sellTitle').value.trim();
+    const price = parseFloat(document.getElementById('sellPrice').value);
+    const delivery = document.getElementById('sellDelivery').value.trim();
+    const img = document.getElementById('sellImage').value.trim();
+    if(!title || !price || !delivery) return alert('Enter title, price and delivery');
+    const id = Date.now();
+    const seller = session.name;
+    data.listings.push({ id, title, price, seller, delivery, image: img, createdAt: new Date().toISOString() });
+    save(data);
+    alert('Listing created!');
+    document.getElementById('sellTitle').value=''; document.getElementById('sellPrice').value=''; document.getElementById('sellImage').value=''; document.getElementById('sellDelivery').value='';
+    render();
+  });
+
+  // product modal
+  const modal = document.getElementById('productModal');
+  const modalTitle = document.getElementById('modalTitle');
+  const modalImage = document.getElementById('modalImage');
+  const modalDetails = document.getElementById('modalDetails');
+  const modalBids = document.getElementById('modalBids');
+  const bidAmt = document.getElementById('bidAmt');
+  const placeBidBtn = document.getElementById('placeBidBtn');
+  const acceptBidBtn = document.getElementById('acceptBidBtn');
+  const sellerHistoryWrap = document.getElementById('sellerHistoryWrap');
+
+  window.openProduct = function(id){
+    openProduct(id);
+  }
+
+  function openProduct(id){
+    data = load();
+    const item = data.listings.find(x=>x.id==id);
+    if(!item){ alert('Item not found'); return; }
+    modal.style.display='flex';
+    modalTitle.textContent = item.title;
+    modalImage.src = item.image || 'https://via.placeholder.com/600x400?text=No+Image';
+    modalDetails.innerHTML = `<div class="muted">Seller: ${item.seller}</div><div class="muted">Delivery: ${item.delivery}</div><div style="margin-top:8px">Base price: <strong>₱${item.price}</strong></div>`;
+    renderBidsFor(item.id);
+    // seller accept visible only to seller or admins
+    acceptBidBtn.style.display = (session.name===item.seller || session.isAdmin) ? 'inline-block' : 'none';
+    sellerHistoryWrap.innerHTML = `<div class="muted"><strong>Seller's other listings</strong></div>` + data.listings.filter(l=>l.seller===item.seller && l.id!==item.id).map(l=>`<div style="padding:6px 0">${l.title} — ₱${l.price}</div>`).join('');
+    // attach events
+    placeBidBtn.onclick = ()=> placeBid(item.id);
+    acceptBidBtn.onclick = ()=> acceptHighest(item.id);
+    // set anchor so bank ads can link directly
+    location.hash = `product_${item.id}`;
+  }
+
+  function closeModal(){ modal.style.display='none'; location.hash=''; }
+  window.closeModal = closeModal;
+
+  function renderBidsFor(productId){
+    data = load();
+    const bids = data.bids.filter(b=>b.productId==productId).sort((a,b)=>b.amount-a.amount);
+    modalBids.innerHTML = bids.length ? bids.map(b=>`<div style="padding:6px;border-bottom:1px solid #f1f5f9"><strong>${b.user}</strong> — ₱${b.amount} <div class="muted" style="font-size:12px">${b.at}</div></div>`).join('') : '<div class="muted">No bids yet</div>';
+  }
+
+  function placeBid(productId){
+    const amt = parseFloat(bidAmt.value);
+    if(!amt || amt<=0) return alert('Enter valid bid amount');
+    const user = session.name;
+    // ensure enough credits?
+    const me = data.users.find(u=>u.name===user);
+    // we won't block bids if not enough funds (simulated). optional: check and warn.
+    data.bids.push({ id: Date.now(), productId, user, amount: amt, at: new Date().toLocaleString() });
+    save(data); renderBidsFor(productId); bidAmt.value='';
+    // auto refresh effect: all other open pages will pick it up from localStorage next interval
+  }
+
+  // accept highest bid -> pay seller: buyer's credits reduced? For simplicity: transfer amount from buyer to seller if buyer has funds; otherwise just mark accepted and remove listing.
+  function acceptHighest(productId){
+    data = load();
+    const bids = data.bids.filter(b=>b.productId==productId);
+    if(bids.length===0) return alert('No bids to accept');
+    const highest = bids.reduce((a,b)=>a.amount>b.amount? a : b);
+    // find buyer & seller
+    const listing = data.listings.find(l=>l.id==productId);
+    const buyer = data.users.find(u=>u.name===highest.user);
+    const seller = data.users.find(u=>u.name===listing.seller);
+    if(buyer && seller){
+      // transfer if buyer has enough credits; otherwise allow negative balance
+      buyer.credits = (buyer.credits || 0) - highest.amount;
+      seller.credits = (seller.credits || 0) + highest.amount;
+    }
+    // remove listing and related bids
+    data.listings = data.listings.filter(l=>l.id!==productId);
+    data.bids = data.bids.filter(b=>b.productId!==productId);
+    // log sale
+    data.loans = data.loans || [];
+    data.loans.push({ type:'sale', product: listing.title, amount: highest.amount, seller: seller.name, buyer: buyer.name, at: new Date().toISOString() });
+    save(data);
+    closeModal();
+    render();
+    alert(`Accepted ₱${highest.amount} from ${highest.user}. Listing removed.`);
+  }
+
+  // auto-refresh to show bids placed elsewhere (other tabs)
+  setInterval(()=>{
+    // if modal open, re-render bids
+    if(modal.style.display==='flex'){
+      const anchor = location.hash;
+      if(anchor && anchor.startsWith('#product_')){
+        const id = anchor.split('_')[1];
+        renderBidsFor(id);
+      }
+    }
+    // also re-render list to show new items
+    render();
+  }, 2000);
+
+  // if hash points to a product, open it
+  window.addEventListener('load', ()=>{
+    render();
+    if(location.hash && location.hash.startsWith('#product_')){
+      const id = parseInt(location.hash.split('_')[1]);
+      setTimeout(()=> openProduct(id), 500);
+    }
+  });
+})();
+</script>
+</body>
+</html>
